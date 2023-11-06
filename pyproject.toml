@@ -8,7 +8,7 @@ packages = [{include = "training_gym"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-gymnasium = {extras = ["accept-rom-license", "atari", "all"], version = "^0.29.1"}
+gymnasium = {extras = ["accept-rom-license", "atari", "all"], version = "^0.26"}
 
 [build-system]
 requires = ["poetry-core"]
