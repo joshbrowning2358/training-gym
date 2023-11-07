@@ -19,8 +19,8 @@ for i in range(games_to_play):
         action = 0
         try:
             action = get_action(observation, info["lives"], info["frame_number"])
-        except:
-            warning(f"get_action() call failed, using 0 as action!")
+        except BaseException:
+            warning("get_action() call failed, using 0 as action!")
         if action not in env.action_space:
             warning(f"Action {action} not in valid actions {env.action_space}, replacing with 0!")
             action = 0
