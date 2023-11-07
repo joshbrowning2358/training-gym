@@ -10,6 +10,75 @@ packages = [{include = "training_gym"}]
 python = "^3.10"
 gymnasium = {extras = ["accept-rom-license", "atari", "all"], version = "^0.26"}
 
+[tool.poetry.group.dev.dependencies]
+black = "*"
+coverage = "*"
+pre-commit = "*"
+pytest = "*"
+ruff = "*"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+select = ["F", "E", "I001"]
+ignore = [
+    "E712", # "X == Y" should not be "X is Y" for numpy code
+]
+# F841 checks for unused variables, but ruff will sometimes cause bugs in the code with this.  For
+# example, if we rename x -> x2 but miss one occurence, ruff will replace a line like `x = f(x)`
+# with `f(x)`.  Marking as unfixable makes ruff fail instead so we must manually fix.
+unfixable = ["F841"]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+# Same as black
+line-length = 120
+
+# Assume Python 3.7
+target-version = "py37"
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401", "F403"] # Unused import exception for __init__.py files.
+
+[tool.ruff.mccabe]
+# Unlike Flake8, default to a complexity level of 10.
+max-complexity = 10
+
+[tool.ruff.isort]
+order-by-type = true
+relative-imports-order = "closest-to-furthest"
+extra-standard-library = ["typing"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.black]
+target-version = ['py310']
+line-length = 120
+
+[tool.isort]
+line_length = 120
+profile = "black"
