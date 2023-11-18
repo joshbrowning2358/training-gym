@@ -2,7 +2,10 @@ from logging import warning
 
 import gymnasium as gym
 
-from example import get_action_zero as get_action
+# from example import get_action_zero as get_action
+from agents import get_action_avoid_alien as get_action
+
+# from agents import get_action_random as get_action
 
 # env = gym.make("ALE/Galaxian-v5", render_mode="rgb_array")
 env = gym.make("ALE/Galaxian-v5", render_mode="human")
