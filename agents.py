@@ -1,5 +1,5 @@
 from logging import warning
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 from scipy.signal import convolve2d
@@ -15,11 +15,47 @@ ACTION_RIGHT_SHOOT = 4
 ACTION_LEFT_SHOOT = 5
 
 
-def get_action_random(observation, lives, frame_number):
+def get_action_random(observation, info: Dict):
     return np.random.choice([ACTION_SHOOT, ACTION_RIGHT_SHOOT, ACTION_LEFT_SHOOT])
 
 
-def get_action_avoid_alien(observation, lives, frame_number):
+def get_pole_cart_random_action(observation, info: Dict):
+    return np.random.choice([0, 1])
+
+
+def get_mountain_car_right_action(observation, info: Dict):
+    return 2
+
+
+def get_pole_cart_interactive_action(observation, info: Dict) -> int:
+    got_action = False
+    while not got_action:
+        action_str = input("Enter action: ")
+        try:
+            action = int(action_str)
+            if action not in [0, 1]:
+                raise ValueError("Invalid action, should be 0 or 1!")
+        except:  # noqa
+            warning(f"Invalid action {action_str}, should be 0 or 1!")
+        got_action = True
+    return action
+
+
+def get_mountain_car_interactive_action(observation, info: Dict) -> int:
+    got_action = False
+    while not got_action:
+        action_str = input("Enter action: ")
+        try:
+            action = int(action_str)
+            if action not in [0, 1, 2]:
+                raise ValueError("Invalid action, should be 0, 1 or 2!")
+        except:  # noqa
+            warning(f"Invalid action {action_str}, should be 0, 1 or 2!")
+        got_action = True
+    return action
+
+
+def get_action_avoid_alien(observation, info: Dict):
 
     # from PIL import Image
     # player = Image.fromarray(observation[166:185, 76:86])
