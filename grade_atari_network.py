@@ -1,14 +1,14 @@
-from logging import warning
-
 import gymnasium as gym
 import numpy as np
 import tensorflow as tf
 
 from deep_q_network import ConvModel, preprocess
 
-model = ConvModel(channels=[16, 128], kernel_sizes=[4, 8], strides=[4, 8], n_actions=6)
-model.build(input_shape=(1, 169, 128, 4))
-model.load_weights("/home/josh/output/galaxian/first_attempt/epoch_0")
+# model = tf.saved_model.load("/home/josh/output/galaxian/first_attempt/epoch_2")
+# model = tf.saved_model.load("/home/josh/output/galaxian/2023-11-22_death_penalty/epoch_3")
+# model = tf.saved_model.load("/home/josh/output/galaxian/2023-11-23_batch_size16/epoch_11")
+# model = tf.saved_model.load("/home/josh/output/galaxian/2023-11-28_batch_size32_ram_tricks/epoch_4")
+model = tf.saved_model.load("/home/josh/output/galaxian/2023-11-27_batch_size64/epoch_1")
 
 # env = gym.make("ALE/Galaxian-v5", render_mode="rgb_array")
 env = gym.make("ALE/Galaxian-v5", render_mode="human")
@@ -25,9 +25,13 @@ for i in range(games_to_play):
     while (not terminated) and (not truncated):
         action = 0
         if len(image_queue) == 4:
-            tf_input = tf.cast(tf.stack(image_queue, axis=2), tf.float32)
-            tf_input = tf.expand_dims(tf_input, axis=0)  # Add batch dim
-            rewards = model.predict(tf_input)
+            # tf_input = tf.cast(tf.stack(image_queue, axis=2), tf.float32)
+            # tf_input = tf.expand_dims(tf_input, axis=0)  # Add batch dim
+            tf_input = np.expand_dims(np.stack(image_queue, axis=2), axis=0)
+            rewards = model.serve(tf_input)
+
+            model.serve(np.expand_dims(np.stack(image_queue, axis=2), axis=0))
+
             action = np.argmax(rewards)
         else:
             action = env.action_space.sample()

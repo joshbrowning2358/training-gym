@@ -1,5 +1,7 @@
+import gc
 import os
 import sys
+from datetime import datetime
 from typing import List
 
 import click
@@ -8,55 +10,69 @@ import keras
 import numpy as np
 import tensorflow as tf
 from PIL import Image
+from keras.src.callbacks import ModelCheckpoint
 from tf_agents.replay_buffers import TFUniformReplayBuffer
 from tqdm import tqdm
 
 from constants import PLAY_COLS, PLAY_ROWS
 
-N_TRAINING_IMAGES = 4
+N_TRAINING_IMAGES = 4  # Number of images in history to train on
 BATCH_SIZE = 32
-MAX_LENGTH = 1000  # Max replay buffer size, will have this many obs * BATCH_SIZE
-NUM_STEPS = 1000
+MAX_LENGTH = 3  # Max replay buffer size, will have this many obs * BATCH_SIZE
+NUM_STEPS = 1000  # Train steps per training epoch
 DISCOUNT_FACTOR = 0.999
 NUM_EPOCHS = 20
+DEATH_PENALTY = -500  # Reward added when life is lost.  Maybe should be ~typical score for one life?
 
 
-def produce_training_data(env, model):
+def produce_training_data(env, model, replay_buffer=None):
     env.reset()
-    replay_buffer = get_replay_buffer()
+    if replay_buffer is None:
+        replay_buffer = get_replay_buffer()
     image_queue = []
     while len(image_queue) < N_TRAINING_IMAGES:
         observation, _, _, _, _ = env.step(env.action_space.sample())
         image_queue += [preprocess(observation)]
 
+    current_lives = 3
     batch_collector = {"imgs": [], "rewards": [], "actions": [], "next_obs": []}
-    for _ in tqdm(range(MAX_LENGTH * BATCH_SIZE)):
-        imgs = np.expand_dims(np.stack(image_queue, axis=2), axis=0).astype(np.float32)
-        action_rewards = model.predict(imgs, verbose=0)
-        action = np.argmax(action_rewards)
-        # Add randomness to actions to increase variability
-        if np.random.random() < 0.1:
-            action = env.action_space.sample()
-        observation, reward, terminated, truncated, info = env.step(action)
+    for _ in tqdm(range(MAX_LENGTH)):
+        added = 0
+        while added < BATCH_SIZE:
+            imgs = np.expand_dims(np.stack(image_queue, axis=2), axis=0).astype(np.float32)
+            action_rewards = model.predict(imgs, verbose=0)
+            action = np.argmax(action_rewards)
+            # Add randomness to actions to increase variability
+            if np.random.random() < 0.1:
+                action = env.action_space.sample()
+            observation, reward, terminated, truncated, info = env.step(action)
 
-        # Accumulate experience
-        batch_collector["imgs"] += [imgs]
-        batch_collector["rewards"] += [reward]
-        batch_collector["actions"] += [action]
-        batch_collector["next_obs"] += [preprocess(observation)]
+            if terminated:
+                env.reset(seed=int(datetime.now().timestamp()))
 
-        # Write to replay buffer
-        if len(batch_collector["imgs"]) == replay_buffer._batch_size:
-            replay_buffer.add_batch((
-                tf.reshape(tf.stack(batch_collector["actions"]), (-1, 1)),
-                tf.reshape(tf.stack(batch_collector["rewards"]), (-1, 1)),
-                tf.cast(tf.concat(batch_collector["imgs"], axis=0), tf.uint8),
-                tf.cast(batch_collector["next_obs"], tf.uint8),
-            ))
-            batch_collector = {"imgs": [], "rewards": [], "actions": [], "next_obs": []}
+            if info["lives"] < current_lives or terminated:
+                reward += DEATH_PENALTY
+                current_lives = info["lives"]
 
-        image_queue.pop(0)
-        image_queue.append(preprocess(observation))
+            # Accumulate experience
+            batch_collector["imgs"] += [imgs]
+            batch_collector["rewards"] += [reward]
+            batch_collector["actions"] += [action]
+            batch_collector["next_obs"] += [preprocess(observation)]
+            added += 1
+
+            # Write to replay buffer
+            if len(batch_collector["imgs"]) == replay_buffer._batch_size:
+                replay_buffer.add_batch((
+                    tf.reshape(tf.stack(batch_collector["actions"]), (-1, 1)),
+                    tf.reshape(tf.stack(batch_collector["rewards"]), (-1, 1)),
+                    tf.cast(tf.concat(batch_collector["imgs"], axis=0), tf.uint8),
+                    tf.cast(batch_collector["next_obs"], tf.uint8),
+                ))
+                batch_collector = {"imgs": [], "rewards": [], "actions": [], "next_obs": []}
+
+            image_queue.pop(0)
+            image_queue.append(preprocess(observation))
 
     return replay_buffer
 
@@ -80,9 +96,13 @@ def get_replay_buffer():
     return replay_buffer
 
 
-def train_model(model, replay_buffer):
+def train_model(model, replay_buffer, checkpoint_callback):
+    dataset = replay_buffer.as_dataset(sample_batch_size=BATCH_SIZE)
+    iterator = iter(dataset)
+
     for step in tqdm(range(NUM_STEPS), desc="training", unit="steps"):
-        action, reward, imgs, next_img = replay_buffer.get_next(sample_batch_size=BATCH_SIZE)[0]
+        (action, reward, imgs, next_img), _ = next(iterator)
+        # action, reward, imgs, next_img = replay_buffer.get_next(sample_batch_size=BATCH_SIZE)[0]
 
         # We train our model by forcing the current value = discounted future value + reward.  We have the reward, but
         # the discounted future value requires a model inference pass.  We need 4 images to run inference, so we should
@@ -94,7 +114,10 @@ def train_model(model, replay_buffer):
         estimated_future_value = tf.reduce_max(estimated_future_value, axis=1)
         target = estimated_future_value * DISCOUNT_FACTOR + reward[:, 0]
 
-        model.fit(tf.cast(imgs, tf.float32), target, verbose=0)
+        if step == NUM_STEPS - 1:
+            model.fit(tf.cast(imgs, tf.float32), target, verbose=0, callbacks=[checkpoint_callback])
+        else:
+            model.fit(tf.cast(imgs, tf.float32), target, verbose=0)
 
     return model
 
@@ -121,16 +144,24 @@ class ConvModel(tf.keras.Model):
 @click.option("--environment-name", type=str, default="ALE/Galaxian-v5")
 @click.option("--save-dir", type=click.Path())
 def run_training(environment_name: str, save_dir: str):
+    # if os.path.exists(save_dir):
+    #     model = tf.saved_model.load()
     os.makedirs(save_dir, exist_ok=True)
 
     env = gym.make(environment_name, render_mode="rgb_array")
     model = ConvModel(channels=[16, 128], kernel_sizes=[4, 8], strides=[4, 8], n_actions=env.action_space.n)
+    checkpoint_callback = ModelCheckpoint(filepath=save_dir)
     model.build(input_shape=(1, 169, 128, 4))
     model.compile(optimizer="Adam", loss="mse")
+    replay_buffer = None
     for epoch in range(NUM_EPOCHS):
-        replay_buffer = produce_training_data(env, model=model)
-        model = train_model(model, replay_buffer)
+        replay_buffer = produce_training_data(env, model=model, replay_buffer=replay_buffer)
+        train_model(model, replay_buffer, checkpoint_callback)
         model.export(os.path.join(save_dir, f"epoch_{epoch}"))
+        replay_buffer.clear()
+        del replay_buffer
+        gc.collect()
+        replay_buffer = None
 
 
 if __name__ == "__main__":
