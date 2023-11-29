@@ -8,8 +8,8 @@ packages = [{include = "training_gym"}]
 
 [tool.poetry.dependencies]
 python = "3.10.8"
-gymnasium = {extras = ["accept-rom-license", "atari", "all"], version = ">=0.26"}
-tensorflow = "^2.14.0"
+gymnasium = {extras = ["accept-rom-license", "atari"], version = ">=0.26"}
+tensorflow = {version = "^2.13.0", extras = ["and-cuda"]}
 tf-agents = ">=0.17"
 
 [tool.poetry.group.dev.dependencies]
