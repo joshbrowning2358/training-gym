@@ -9,7 +9,7 @@ import numpy as np
 
 # "CliffWalking-v0"
 #   Observation is current_row * nrows + current_column
-#   Action is 0 (north), 1 (west), 2 (south), 3 (east)
+#   Action is 0 (north), 1 (east), 2 (south), 3 (west)
 # "Taxi-v3":
 #   Observation is ((taxi_row * 5 + taxi_col) * 5 + passenger_location) * 4 + destination
 #   Action is 0 (south), 1 (north), 2 (east), 3 (west), 4 (pickup), 5 (dropoff)
@@ -24,7 +24,7 @@ import numpy as np
 #   Observation is (position, velocity)
 #   Action is 0 (push left), 1 (no push), 2 (push right)
 # "ALE/Breakout-v5"
-#   Observation is (210, 160,s 3) array of uint8 (RGB screen of the game)
+#   Observation is (210, 160, 3) array of uint8 (RGB screen of the game)
 #   Action is 0 (noop), 1 (fire), 2 (right), 3 (left)
 
 
