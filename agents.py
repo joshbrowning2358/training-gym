@@ -3,6 +3,42 @@ from logging import warning
 import numpy as np
 
 
+def get_action(observation, info):
+    print("Observation is ", observation)
+    return 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def get_mountain_car_right_action(observation, info):
     return 2
 
