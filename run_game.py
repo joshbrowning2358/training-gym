@@ -9,7 +9,7 @@ import numpy as np
 
 # "CliffWalking-v0"
 #   Observation is current_row * nrows + current_column
-#   Action is 0 (north), 1 (west), 2 (south), 3 (east)
+#   Action is 0 (north), 1 (east), 2 (south), 3 (west)
 # "Taxi-v3":
 #   Observation is ((taxi_row * 5 + taxi_col) * 5 + passenger_location) * 4 + destination
 #   Action is 0 (south), 1 (north), 2 (east), 3 (west), 4 (pickup), 5 (dropoff)
@@ -33,11 +33,16 @@ import numpy as np
 @click.option("--function-name", type=str)
 @click.option("--script-location", type=str, default="agents")
 @click.option("--n-games", type=int, default=1)
-def run_game(game_name: str, function_name: str, script_location: str, n_games: int):
+@click.option("--custom-game", type=bool, default=False)
+def run_game(game_name: str, function_name: str, script_location: str, n_games: int, custom_game: bool):
     module = importlib.import_module(script_location)
     get_action = getattr(module, function_name)
 
-    env = gym.make(game_name, render_mode="human")
+    if custom_game:
+        module = importlib.import_module("custom_games")
+        env = getattr(module, game_name)
+    else:
+        env = gym.make(game_name, render_mode="human")
     print(f"Action space is {env.action_space}")
 
     observation, info = env.reset()
