@@ -24,7 +24,7 @@ import numpy as np
 #   Observation is (position, velocity)
 #   Action is 0 (push left), 1 (no push), 2 (push right)
 # "ALE/Breakout-v5"
-#   Observation is (210, 160,s 3) array of uint8 (RGB screen of the game)
+#   Observation is (210, 160, 3) array of uint8 (RGB screen of the game)
 #   Action is 0 (noop), 1 (fire), 2 (right), 3 (left)
 
 

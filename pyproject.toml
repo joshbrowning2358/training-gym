@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "training_gym"}]
 
 [tool.poetry.dependencies]
-python = "3.10.8"
+python = ">=3.10,<3.11"
 gymnasium = {extras = ["accept-rom-license", "atari"], version = ">=0.26"}
 tensorflow = {version = "^2.13.0", extras = ["and-cuda"]}
 tf-agents = ">=0.17"
