@@ -4,7 +4,7 @@ import numpy as np
 
 
 def get_action(observation, info):
-    return 0
+    return (observation[1] > 0) * 2
 
 
 def get_mountain_car_right_action(observation, info):
