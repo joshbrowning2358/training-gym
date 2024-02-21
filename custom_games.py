@@ -11,3 +11,19 @@ for i in range(1, N - 1):
 map = ["S" + 2 * "F" + (N - 3) * "H"] + map + ["H" * (N - 3) + "F" * 2 + "G"]
 
 frozen_lake = gym.make("FrozenLake-v1", desc=map, is_slippery=False, render_mode="human")
+
+
+gym.register(
+    id="DollarGame-v0",
+    entry_point="dollar_game.dollar_game:DollarGame",
+)
+
+dollar_game = gym.make("DollarGame-v0")
+
+
+gym.register(
+    id="NumberGuessing-v0",
+    entry_point="number_guessing.env:NumberGuessing",
+)
+
+number_guessing = gym.make("NumberGuessing-v0")
