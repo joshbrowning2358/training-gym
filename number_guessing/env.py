@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import gymnasium as gym
 import numpy as np
@@ -13,17 +13,17 @@ class NumberGuessing(Env):
 
         self.action_space = gym.spaces.Discrete(n=num_values + 1)
         self.observation_space = gym.spaces.Dict(
-            {"high": gym.spaces.Discrete(n=num_values), "low": gym.spaces.Discrete(n=num_values)}
+            {"high": gym.spaces.Discrete(n=num_values + 1), "low": gym.spaces.Discrete(n=num_values)}
         )
-        self.high = self.num_values + 1
-        self.low = 0
+        self.high = self.num_values
+        self.low = 1
         self.num_guesses = 0
         self._answer = None
 
-    def reset(self) -> Tuple[Dict[str, int], Dict]:
+    def reset(self, seed: Optional[int] = None, options: Optional[Dict] = None) -> Tuple[Dict[str, int], Dict]:
         self._answer = np.random.choice(range(1, self.num_values + 1))
-        self.high = self.num_values + 1
-        self.low = 0
+        self.high = self.num_values
+        self.low = 1
         self.num_guesses = 0
         return {"high": self.high, "low": self.low}, {}
 
@@ -40,9 +40,9 @@ class NumberGuessing(Env):
             return {"high": self._answer, "low": self._answer}, self.num_guesses, True, False, {}
         else:
             if action > self._answer:
-                self.high = min(self.high, action)
+                self.high = min(self.high, action - 1)
                 print("Guess was too high!")
             else:
-                self.low = max(self.low, action)
+                self.low = max(self.low, action + 1)
                 print("Guess was too low!")
             return {"high": self.high, "low": self.low}, 0, False, False, {}
