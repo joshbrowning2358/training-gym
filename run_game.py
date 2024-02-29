@@ -77,7 +77,10 @@ def run_game(game_name: str, function_name: str, script_location: str, n_games: 
 
     env.close()
 
-    print(f"Rewards were {game_rewards}, average reward was {np.mean(game_rewards)}")
+    print(
+        f"Rewards were {game_rewards}\nAverage reward was {np.mean(game_rewards)}\n"
+        f"Lowest reward was {np.min(game_rewards)}\nHighest reward was {np.max(game_rewards)}"
+    )
 
 
 if __name__ == "__main__":

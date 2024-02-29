@@ -180,3 +180,14 @@ def get_action(observation, info):
 
 def get_coordinate(observation, N=20):
     return observation // N, observation % N
+
+
+def get_action_dollar(observation, info):
+    if observation["draw"] < 86:
+        return 1
+    else:
+        return 0
+
+
+def get_action_number_guessing(observation, info):
+    return (observation["low"] + observation["high"]) // 2

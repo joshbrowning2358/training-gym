@@ -11,19 +11,19 @@ class NumberGuessing(Env):
 
         self.num_values = num_values
 
-        self.action_space = gym.spaces.Discrete(n=num_values)
+        self.action_space = gym.spaces.Discrete(n=num_values + 1)
         self.observation_space = gym.spaces.Dict(
             {"high": gym.spaces.Discrete(n=num_values), "low": gym.spaces.Discrete(n=num_values)}
         )
-        self.high = self.num_values
-        self.low = 1
+        self.high = self.num_values + 1
+        self.low = 0
         self.num_guesses = 0
         self._answer = None
 
     def reset(self) -> Tuple[Dict[str, int], Dict]:
         self._answer = np.random.choice(range(1, self.num_values + 1))
-        self.high = self.num_values
-        self.low = 1
+        self.high = self.num_values + 1
+        self.low = 0
         self.num_guesses = 0
         return {"high": self.high, "low": self.low}, {}
 
