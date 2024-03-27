@@ -174,12 +174,12 @@ def avoid_enemy_flee(img: np.ndarray, player_location: int, safe_distance: int =
 
 
 def get_action(observation, info):
-    row, col = get_coordinate(observation)
+    row, col = get_coordinate(observation["position"], observation["board_size"])
     return (row > col) + 1
 
 
-def get_coordinate(observation, N=20):
-    return observation // N, observation % N
+def get_coordinate(observation, board_size=20):
+    return observation // board_size, observation % board_size
 
 
 def get_action_dollar(observation, info):

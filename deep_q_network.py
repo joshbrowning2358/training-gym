@@ -9,8 +9,8 @@ import gymnasium as gym
 import keras
 import numpy as np
 import tensorflow as tf
-from PIL import Image
 from keras.src.callbacks import ModelCheckpoint
+from PIL import Image
 from tf_agents.replay_buffers import TFUniformReplayBuffer
 from tqdm import tqdm
 
@@ -18,7 +18,7 @@ from constants import PLAY_COLS, PLAY_ROWS
 
 N_TRAINING_IMAGES = 4  # Number of images in history to train on
 BATCH_SIZE = 32
-MAX_LENGTH = 3  # Max replay buffer size, will have this many obs * BATCH_SIZE
+MAX_LENGTH = 100  # Max replay buffer size, will have this many obs * BATCH_SIZE
 NUM_STEPS = 1000  # Train steps per training epoch
 DISCOUNT_FACTOR = 0.999
 NUM_EPOCHS = 20
@@ -63,12 +63,14 @@ def produce_training_data(env, model, replay_buffer=None):
 
             # Write to replay buffer
             if len(batch_collector["imgs"]) == replay_buffer._batch_size:
-                replay_buffer.add_batch((
-                    tf.reshape(tf.stack(batch_collector["actions"]), (-1, 1)),
-                    tf.reshape(tf.stack(batch_collector["rewards"]), (-1, 1)),
-                    tf.cast(tf.concat(batch_collector["imgs"], axis=0), tf.uint8),
-                    tf.cast(batch_collector["next_obs"], tf.uint8),
-                ))
+                replay_buffer.add_batch(
+                    (
+                        tf.reshape(tf.stack(batch_collector["actions"]), (-1, 1)),
+                        tf.reshape(tf.stack(batch_collector["rewards"]), (-1, 1)),
+                        tf.cast(tf.concat(batch_collector["imgs"], axis=0), tf.uint8),
+                        tf.cast(batch_collector["next_obs"], tf.uint8),
+                    )
+                )
                 batch_collector = {"imgs": [], "rewards": [], "actions": [], "next_obs": []}
 
             image_queue.pop(0)
@@ -161,7 +163,6 @@ def run_training(environment_name: str, save_dir: str):
         replay_buffer.clear()
         del replay_buffer
         gc.collect()
-        replay_buffer = None
 
 
 if __name__ == "__main__":
