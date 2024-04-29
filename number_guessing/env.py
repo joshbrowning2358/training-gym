@@ -6,7 +6,7 @@ from gymnasium import Env
 
 
 class NumberGuessing(Env):
-    def __init__(self, num_values: int = 100):
+    def __init__(self, num_values: int = 1000000000):
         super(NumberGuessing, self).__init__()
 
         self.num_values = num_values

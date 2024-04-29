@@ -15,6 +15,75 @@ ACTION_RIGHT_SHOOT = 4
 ACTION_LEFT_SHOOT = 5
 
 
+SOUTH = 0
+NORTH = 1
+EAST = 2
+WEST = 3
+PICKUP = 4
+DROPOFF = 5
+
+RED = (0, 0)
+GREEN = (0, 4)
+YELLOW = (4, 0)
+BLUE = (4, 3)
+
+
+# Taxi cab
+def get_action(observation, info: Dict):
+    destination, passenger, taxi_row, taxi_col = extract_observation(observation)
+    print(f"Destination: {destination}, Passenger: {passenger}, Taxi: ({taxi_row}, {taxi_col})")
+    dest = destination if passenger == "taxi" else passenger
+    # At destination, need to pick up or drop off passenger
+    if (taxi_row, taxi_col) == dest:
+        return DROPOFF if passenger == "taxi" else PICKUP
+
+    # Not at destination, need to move to it
+    # If on row 2, we can move east/west freely
+    if taxi_row == 2:
+        if taxi_col < dest[1]:
+            return EAST
+        elif taxi_col > dest[1]:
+            return WEST
+        else:
+            return SOUTH if taxi_row < dest[0] else NORTH
+
+    # If vertically far away from destination, move to row 2
+    if abs(taxi_row - dest[0]) > 2:
+        return SOUTH if taxi_row < 2 else NORTH
+
+    if taxi_row < 2:
+        # If vertically close to destination but blocked by col, move to row 2
+        if (taxi_col < 2 and dest[1] == 4) or (taxi_col >= 2 and dest[1] == 0):
+            return SOUTH
+        else:
+            # Not blocked, move to dest!  First move up, then left/right
+            if taxi_row == 1:
+                return NORTH
+            return WEST if taxi_col > dest[1] else EAST
+
+    if taxi_row > 2:
+        # If vertically close to destination but blocked by col, move to row 2
+        if (taxi_col > 0 and dest[1] == 0) or (taxi_col < 3 and dest[1] == 3):
+            return NORTH
+        else:
+            # Not blocked, move to dest!  First move down, then left/right
+            if taxi_row == 3:
+                return SOUTH
+            return WEST if taxi_col > dest[1] else EAST
+
+    print("No action found!")
+
+
+def extract_observation(observation):
+    destination_id = observation % 4
+    destination = {0: RED, 1: GREEN, 2: YELLOW, 3: BLUE}[destination_id]
+    passenger_id = (observation // 4) % 5
+    passenger = {0: RED, 1: GREEN, 2: YELLOW, 3: BLUE, 4: "taxi"}[passenger_id]
+    taxi_col = (observation // 20) % 5
+    taxi_row = observation // 100
+    return destination, passenger, taxi_row, taxi_col
+
+
 def get_action_random(observation, info: Dict):
     return np.random.choice([ACTION_SHOOT, ACTION_RIGHT_SHOOT, ACTION_LEFT_SHOOT])
 
@@ -173,7 +242,7 @@ def avoid_enemy_flee(img: np.ndarray, player_location: int, safe_distance: int =
         return ACTION_RIGHT_SHOOT
 
 
-def get_action(observation, info):
+def get_action_frozen_lake_n(observation, info):
     row, col = get_coordinate(observation["position"], observation["board_size"])
     return (row > col) + 1
 
