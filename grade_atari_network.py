@@ -2,13 +2,14 @@ import gymnasium as gym
 import numpy as np
 import tensorflow as tf
 
-from deep_q_network import ConvModel, preprocess
+from training_gym.deep_q_network import preprocess
 
 # model = tf.saved_model.load("/home/josh/output/galaxian/first_attempt/epoch_2")
 # model = tf.saved_model.load("/home/josh/output/galaxian/2023-11-22_death_penalty/epoch_3")
 # model = tf.saved_model.load("/home/josh/output/galaxian/2023-11-23_batch_size16/epoch_11")
 # model = tf.saved_model.load("/home/josh/output/galaxian/2023-11-28_batch_size32_ram_tricks/epoch_4")
-model = tf.saved_model.load("/home/josh/output/galaxian/2023-11-27_batch_size64/epoch_1")
+# model = tf.saved_model.load("/home/josh/output/galaxian/2024-04-29/epoch_19")
+model = tf.saved_model.load("/home/josh/output/galaxian/2024-04-30_bs64_dis999_ep100/epoch_28")
 
 # env = gym.make("ALE/Galaxian-v5", render_mode="rgb_array")
 env = gym.make("ALE/Galaxian-v5", render_mode="human")

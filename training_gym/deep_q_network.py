@@ -14,14 +14,14 @@ from PIL import Image
 from tf_agents.replay_buffers import TFUniformReplayBuffer
 from tqdm import tqdm
 
-from constants import PLAY_COLS, PLAY_ROWS
+from training_gym.constants import PLAY_COLS, PLAY_ROWS
 
 N_TRAINING_IMAGES = 4  # Number of images in history to train on
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 MAX_LENGTH = 100  # Max replay buffer size, will have this many obs * BATCH_SIZE
 NUM_STEPS = 1000  # Train steps per training epoch
 DISCOUNT_FACTOR = 0.999
-NUM_EPOCHS = 20
+NUM_EPOCHS = 100
 DEATH_PENALTY = -500  # Reward added when life is lost.  Maybe should be ~typical score for one life?
 
 
@@ -160,9 +160,10 @@ def run_training(environment_name: str, save_dir: str):
         replay_buffer = produce_training_data(env, model=model, replay_buffer=replay_buffer)
         train_model(model, replay_buffer, checkpoint_callback)
         model.export(os.path.join(save_dir, f"epoch_{epoch}"))
-        replay_buffer.clear()
-        del replay_buffer
-        gc.collect()
+        # replay_buffer.clear()
+        # del replay_buffer
+        # replay_buffer = None
+        # gc.collect()
 
 
 if __name__ == "__main__":

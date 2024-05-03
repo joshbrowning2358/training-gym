@@ -4,7 +4,7 @@ from typing import Dict, List
 import numpy as np
 from scipy.signal import convolve2d
 
-from constants import LEFT_RIGHT_BORDER, PLAY_COLS
+from training_gym.constants import LEFT_RIGHT_BORDER, PLAY_COLS
 
 ENEMY_ROWS = (17, 90)
 APPROACHING_ROWS = (90, 185)
