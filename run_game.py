@@ -13,7 +13,7 @@ import numpy as np
 # "Taxi-v3":
 #   Observation is ((taxi_row * 5 + taxi_col) * 5 + passenger_location) * 4 + destination
 #   Action is 0 (south), 1 (north), 2 (east), 3 (west), 4 (pickup), 5 (dropoff)
-#   0: Red, 1: Green, 2: Yellow, 3: Blue
+#   0: Red, 1: Green, 2: Yellow, 3: Blue, 4: Taxi
 # "FrozenLake-v1", "FrozenLake8x8-v1"
 #   Observation is current_row * nrows + current_column
 #   Action is 0 (west), 1 (south), 2 (east), 3 (north)
