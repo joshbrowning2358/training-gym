@@ -260,3 +260,26 @@ def get_action_dollar(observation, info):
 
 def get_action_number_guessing(observation, info):
     return (observation["low"] + observation["high"]) // 2
+
+
+def get_interactive_farkle(observation, info: dict) -> dict:
+    got_action = False
+    while not got_action:
+        keep_str = input("Enter keeps, i.e. 1,3,6 will keep 1, 3 and 6: ")
+        try:
+            keeps = [int(x) for x in keep_str.split(",")]
+            keeps = [True if x in keeps else False for x in range(1, 7)]
+            got_action = True
+        except:  # noqa
+            warning(f"Invalid action {keep_str}!")
+
+    got_continue = False
+    while not got_continue:
+        continue_str = input("Enter continue bool, i.e. stop if 1 and continue with 0")
+        try:
+            continue_bool = bool(continue_str)
+            got_continue = True
+        except:  # noqa
+            warning(f"Invalid action {continue_str}")
+
+    return {"keep": keeps, "continue": continue_bool}
