@@ -31,7 +31,7 @@ BLUE = (4, 3)
 # Taxi cab
 def get_action(observation, info: Dict):
     destination, passenger, taxi_row, taxi_col = extract_observation(observation)
-    print(f"Destination: {destination}, Passenger: {passenger}, Taxi: ({taxi_row}, {taxi_col})")
+    # print(f"Destination: {destination}, Passenger: {passenger}, Taxi: ({taxi_row}, {taxi_col})")
     dest = destination if passenger == "taxi" else passenger
     # At destination, need to pick up or drop off passenger
     if (taxi_row, taxi_col) == dest:
