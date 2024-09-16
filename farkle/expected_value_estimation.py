@@ -1,4 +1,5 @@
 from functools import reduce
+from textwrap import indent
 
 import pandas as pd
 import numpy as np
@@ -33,6 +34,14 @@ value_func = {
     5: {int(cutoff_6): int(cutoff_6)},
     6: {int(cutoff_6): int(cutoff_6)},
 }
+stop = {
+    1: {int(cutoff_6): True},
+    2: {int(cutoff_6): True},
+    3: {int(cutoff_6): True},
+    4: {int(cutoff_6): True},
+    5: {int(cutoff_6): True},
+    6: {int(cutoff_6): True},
+}
 
 def get_rolls(n_dice: int) -> pd.DataFrame:
     return_df = rolls.copy()
@@ -42,7 +51,6 @@ def get_rolls(n_dice: int) -> pd.DataFrame:
 
 
 to_explore = range(int(cutoff_6), 0, -50)
-to_explore = [16350, 16300]
 for curr_value in tqdm(to_explore):
     for n_dice in [6, 5, 4, 3, 2, 1]:
         dice_rolls = get_rolls(n_dice)
@@ -55,4 +63,18 @@ for curr_value in tqdm(to_explore):
                 else:
                     n_remaining = n_remaining if n_remaining > 0 else 6
                     total += value_func[n_remaining][int(curr_value + score)]
-        value_func[n_dice][curr_value] = int(total / dice_rolls.shape[0])
+        value_if_rolling = float(total / dice_rolls.shape[0])
+
+        if value_if_rolling > curr_value:
+            value_func[n_dice][curr_value] = value_if_rolling
+            stop[n_dice][curr_value] = False
+        else:
+            value_func[n_dice][curr_value] = curr_value
+            stop[n_dice][curr_value] = True
+
+print(value_func)
+for i in [1, 2, 3, 4, 5, 6]:
+    threshold = max(k for k, v in stop[i].items() if not v)
+    print(f"If rolling {i} dice, you should stop at {threshold} points.")
+
+thresholds = {1: 200, 2: 200, 3: 350, 4: 900, 5: 2750, 6: 16400}
