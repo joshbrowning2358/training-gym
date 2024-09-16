@@ -10,6 +10,7 @@ packages = [{include = "training_gym"}]
 python = ">=3.10,<3.11"
 gymnasium = ">=0.26"
 cleanrl = "*"
+tqdm = "^4.66.5"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

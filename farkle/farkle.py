@@ -151,8 +151,8 @@ class Farkle(Env):
             "dice": self.dice,
         }
 
-    @staticmethod
-    def score(dice: np.ndarray) -> tuple[int, bool]:
+    @classmethod
+    def score(cls, dice: np.ndarray) -> tuple[int, bool]:
         """
         Args:
             dice: A numpy array of dice rolls.  Can be fewer than 6 as subsequent rounds need to also be scored.
@@ -162,20 +162,34 @@ class Farkle(Env):
                 The score of the dice
                 A boolean indicating if all the dice were used in scoring
         """
+        score, n_remaining = cls.score2(dice)
+        return score, n_remaining > 0
+
+    @staticmethod
+    def score2(dice: np.ndarray) -> tuple[int, int]:
+        """
+        Args:
+            dice: A numpy array of dice rolls.  Can be fewer than 6 as subsequent rounds need to also be scored.
+
+        Returns:
+            Tuple containing:
+                The score of the dice
+                The number of remaining dice
+        """
         if len(dice) == 0:
-            return 0, False
+            return 0, 0
 
         uniqs, cnts = np.unique(dice, return_counts=True)
         if len(uniqs) == 6:  # Straight
-            return 1500, True
+            return 1500, 0
         if len(uniqs) == 3 and all(cnts == 2):  # 3 pair
-            return 1500, True
+            return 1500, 0
         if len(uniqs) == 2 and set(cnts) == {2, 4}:  # 4 of a kind and a pair
-            return 1500, True
+            return 1500, 0
         if len(uniqs) == 2 and all(cnts == 3):  # 2 3 of a kind
-            return 2500, True
+            return 2500, 0
         if max(cnts) == 6:  # 6 of a kind
-            return 3000, True
+            return 3000, 0
 
         # Any further scoring may be partial, so we'll need to remove 5/4/3 of a kind and score remaining
         score = 0
@@ -184,23 +198,23 @@ class Farkle(Env):
             uniqs = uniqs[cnts != 5]
             cnts = cnts[cnts != 5]
             if len(cnts) == 0:
-                return score, True
+                return score, 0
         if cnts.max() == 4:  # 4 of a kind
             score += 1000
             uniqs = uniqs[cnts != 4]
             cnts = cnts[cnts != 4]
             if len(cnts) == 0:
-                return score, True
+                return score, 0
         if cnts.max() == 3:  # 3 of a kind
             dice_val = uniqs[cnts == 3][0]
             score += dice_val * 100 + (dice_val == 1) * 200  # 1's -> 300, all else is 100 * dice value
             uniqs = uniqs[cnts != 3]
             cnts = cnts[cnts != 3]
             if len(cnts) == 0:
-                return score, True
+                return score, 0
 
         # Remaining scoring dice are 1's and 5's
         score += 100 * cnts[uniqs == 1].sum() + 50 * cnts[uniqs == 5].sum()
         uniqs = uniqs[(uniqs != 1) & (uniqs != 5)]
 
-        return score, len(uniqs) == 0
+        return score, len(uniqs)
